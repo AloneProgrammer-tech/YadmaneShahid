@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>آلبوم شهید سید جاسم نوری</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at center, #000 40%, #111 100%);
+      color: #f1c40f;
+      font-family: 'Vazirmatn', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* صفحه‌ی شروع */
+    #intro {
+      position: fixed;
+      inset: 0;
+      background: black;
+      color: #f1c40f;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 10;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    #intro h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px #f1c40f;
+    }
+
+    #intro p {
+      font-size: 1rem;
+      color: #ffec99;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    .container {
+      position: relative;
+      max-width: 95%;
+      height: 80vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    img {
+      max-height: 65vh;
+      max-width: 95vw;
+      border-radius: 15px;
+      object-fit: contain;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.25);
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    img.active {
+      opacity: 1;
+    }
+
+    .caption {
+      margin-top: 15px;
+      font-size: 1rem;
+      text-align: center;
+      color: #f0e68c;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 90%;
+    }
+
+    button {
+      background: rgba(241, 196, 15, 0.1);
+      border: 2px solid #f1c40f;
+      color: #f1c40f;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    button:hover {
+      background: #f1c40f;
+      color: #000;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #f1c40f;
+    }
+
+    .audio-control {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      border: 2px solid #f1c40f;
+      color: #f1c40f;
+      background: rgba(241, 196, 15, 0.1);
+      border-radius: 50%;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      backdrop-filter: blur(5px);
+    }
+
+    .audio-control:hover {
+      background: #f1c40f;
+      color: #000;
+    }
+
+    @media (max-width: 600px) {
+      img {
+        max-height: 55vh;
+      }
+      .caption {
+        font-size: 0.9rem;
+      }
+      button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+      }
+      #intro h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- صفحه‌ی شروع -->
+  <div id="intro">
+    <h1>به یاد شهید قهرمان</h1>
+    <h1>سید جاسم نوری</h1>
+    <p>برای مشاهده آلبوم، لمس کنید 🌹</p>
+  </div>
+
+  <!-- گالری -->
+  <div class="container" id="gallery">
+    <img id="galleryImage" src="" alt="شهید" />
+    <div class="caption" id="caption"></div>
+
+    <!-- دکمه‌ها -->
+    <div class="controls">
+      <button id="prevBtn">قبلی</button>
+      <button id="downloadBtn">دانلود</button>
+      <button id="nextBtn">بعدی</button>
+    </div>
+  </div>
+
+  <!-- کنترل پخش موسیقی -->
+  <button class="audio-control" id="audioToggle">🔊</button>
+  <audio id="bgMusic" loop>
+    <source src="https://sv.musicc.ir/mp3s/2024-03-11/65ef40fa8e249-instrumental-bikalam(128).mp3" type="audio/mpeg" />
+  </audio>
+    <script>
+    const images = [
+      { url: "https://s34.picofile.com/file/8487872150/photo21791164598.jpg", caption: "لحظه‌ای از آرامش در میان طوفان" },
+      { url: "https://s34.picofile.com/file/8487872168/photo21791171591.jpg", caption: "نگاهی از عمق ایمان" },
+      { url: "https://s34.picofile.com/file/8487872176/photo21791171785.jpg", caption: "در مسیر حق، تا آخرین قدم" },
+      { url: "https://s34.picofile.com/file/8487872184/photo21791172114.jpg", caption: "لبخند ابدی شهید" },
+      { url: "https://s34.picofile.com/file/8487872192/photo21791172223.jpg", caption: "یادگار خونین غیرت" },
+      { url: "https://s34.picofile.com/file/8487872200/photo21791172604.jpg", caption: "سکوتی پر از فریاد" },
+      { url: "https://s34.picofile.com/file/8487872218/photo21791172759.jpg", caption: "برگشتنی نیست مسیر عشق" },
+      { url: "https://s34.picofile.com/file/8487872226/photo21791172907.jpg", caption: "وصیت آخر: ما زنده‌ایم تا اسلام زنده بماند" }
+    ];
+
+    let current = 0;
+    const img = document.getElementById("galleryImage");
+    const caption = document.getElementById("caption");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const bgMusic = document.getElementById("bgMusic");
+    const audioToggle = document.getElementById("audioToggle");
+    const intro = document.getElementById("intro");
+    const gallery = document.getElementById("gallery");
+    let isPlaying = false;
+    let autoSlide;
+
+    function showImage(index) {
+      img.classList.remove("active");
+      setTimeout(() => {
+        img.src = images[index].url;
+        caption.textContent = images[index].caption;
+        img.onload = () => img.classList.add("active");
+      }, 200);
+    }
+
+    function nextImage() {
+      current = (current + 1) % images.length;
+      showImage(current);
+    }
+
+    nextBtn.addEventListener("click", () => {
+      nextImage();
+      resetAutoSlide();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      current = (current - 1 + images.length) % images.length;
+      showImage(current);
+      resetAutoSlide();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.href = images[current].url;
+      link.download = "photo.jpg";
+      link.click();
+    });
+
+    // کنترل موزیک
+    audioToggle.addEventListener("click", () => {
+      if (isPlaying) {
+        bgMusic.pause();
+        audioToggle.textContent = "🔇";
+      } else {
+        bgMusic.play();
+        audioToggle.textContent = "🔊";
+      }
+      isPlaying = !isPlaying;
+    });
+
+    // شروع گالری پس از لمس intro
+    intro.addEventListener("click", () => {
+      intro.style.animation = "fadeOut 1.5s forwards";
+      setTimeout(() => {
+        intro.style.display = "none";
+        gallery.style.display = "flex";
+        showImage(current);
+        bgMusic.play().catch(() => {});
+        isPlaying = true;
+        startAutoSlide();
+      }, 1500);
+    });
+
+    function startAutoSlide() {
+      autoSlide = setInterval(nextImage, 7000); // هر ۷ ثانیه
+    }
+
+    function resetAutoSlide() {
+      clearInterval(autoSlide);
+      startAutoSlide();
+    }
+  </script>
+</body>
+</html>

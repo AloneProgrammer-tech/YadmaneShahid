@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ذکر شمار</title>
+  <style>
+    body {
+      font-family: "Tahoma", sans-serif;
+      text-align: center;
+      background: linear-gradient(180deg, #e8f5e9, #c8e6c9);
+      margin: 0;
+      padding: 50px 20px;
+      direction: rtl;
+    }
+
+    h1 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      color: #4e4e4e;
+      margin-top: 0;
+      font-weight: normal;
+    }
+
+    #counter {
+      font-size: 48px;
+      margin: 30px 0;
+      color: #00695c;
+      background: white;
+      display: inline-block;
+      padding: 15px 50px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      min-width: 150px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 10px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+    }
+
+    #increment {
+      background-color: #28a745;
+      order: 1;
+    }
+
+    #increment:hover {
+      background-color: #218838;
+      transform: scale(1.05);
+    }
+
+    #reset {
+      background-color: #dc3545;
+      order: 2;
+    }
+
+    #reset:hover {
+      background-color: #c82333;
+      transform: scale(1.05);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      flex-direction: row-reverse;
+    }
+  </style>
+</head>
+<body>
+  <h1>ذکر شمار</h1>
+  <h3>هدیه به ارواح طیبه شهدا</h3>
+
+  <div id="counter">0</div>
+
+  <div class="buttons">
+    <button id="increment">صلوات</button>
+    <button id="reset">ریست</button>
+  </div>
+
+  <script>
+    let count = 0;
+    const counter = document.getElementById('counter');
+    const increment = document.getElementById('increment');
+    const reset = document.getElementById('reset');
+
+    increment.addEventListener('click', () => {
+      count++;
+      counter.textContent = count;
+    });
+
+    reset.addEventListener('click', () => {
+      count = 0;
+      counter.textContent = count;
+    });
+  </script>
+</body>
+</html>

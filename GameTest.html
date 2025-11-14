@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>جنگ هواپیماها - موبایل</title>
+<title>جنگ هواپیماها - عمودی</title>
 <style>
     body {
         margin: 0;
         overflow: hidden;
         background: #111;
-        touch-action: none;
         font-family: sans-serif;
     }
     canvas {
@@ -17,33 +16,36 @@
         margin: 0 auto;
         background: #222;
     }
-    #shootBtn {
+    .btn {
         position: fixed;
-        bottom: 10px;
-        right: 10px;
-        width: 70px;
-        height: 70px;
+        bottom: 20px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        background: #f00;
+        background: rgba(255,0,0,0.8);
         color: white;
-        font-size: 20px;
+        font-size: 30px;
         text-align: center;
-        line-height: 70px;
+        line-height: 60px;
         user-select: none;
         z-index: 10;
     }
+    #btnLeft { left: 20px; }
+    #btnRight { left: 100px; }
+    #shootBtn { right: 20px; bottom: 20px; }
 </style>
 </head>
 <body>
 
 <canvas id="game"></canvas>
-<div id="shootBtn">🔫</div>
+<div class="btn" id="btnLeft">◀</div>
+<div class="btn" id="btnRight">▶</div>
+<div class="btn" id="shootBtn">🔫</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// تنظیم اندازه canvas روی موبایل
 function resizeCanvas(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -53,60 +55,69 @@ resizeCanvas();
 
 // بازیکن
 let playerImg = new Image();
-playerImg.src = 'assets/player.png'; // فقط همین تصویر موجود است
+playerImg.src = 'assets/player.png';
 
 let player = {
-    x: 50,
-    y: canvas.height/2 - 50,
+    x: canvas.width/2,
+    y: canvas.height - 120,
     w: 100,
-    h: 100
+    h: 100,
+    speed: 6
 };
 
 // گلوله‌ها
 let bullets = [];
 
-// شلیک گلوله
+// حرکت با دکمه
+let moveLeft = false;
+let moveRight = false;
+
+// شلیک
 function shoot() {
     bullets.push({
-        x: player.x + player.w,
-        y: player.y + player.h/2 - 10,
+        x: player.x - player.w/2 + 40,
+        y: player.y - 20,
         w: 20,
         h: 20,
-        speed: 8
+        speed: 10
     });
 }
 
-// کنترل حرکت بازیکن لمسی
-canvas.addEventListener("touchmove", function(e){
-    let t = e.touches[0];
-    let rect = canvas.getBoundingClientRect();
-    player.y = t.clientY - rect.top - player.h/2;
-    if(player.y < 0) player.y = 0;
-    if(player.y + player.h > canvas.height) player.y = canvas.height - player.h;
-    e.preventDefault();
-});
-
-// دکمه شلیک
+// کنترل دکمه‌ها
+document.getElementById("btnLeft").addEventListener("touchstart", ()=>moveLeft=true);
+document.getElementById("btnLeft").addEventListener("touchend", ()=>moveLeft=false);
+document.getElementById("btnRight").addEventListener("touchstart", ()=>moveRight=true);
+document.getElementById("btnRight").addEventListener("touchend", ()=>moveRight=false);
 document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 
-// آپدیت بازی
+// آپدیت
 function update() {
-    // حرکت گلوله
+    if(moveLeft) player.x -= player.speed;
+    if(moveRight) player.x += player.speed;
+
+    if(player.x - player.w/2 < 0) player.x = player.w/2;
+    if(player.x + player.w/2 > canvas.width) player.x = canvas.width - player.w/2;
+
+    // حرکت گلوله‌ها
     bullets.forEach((b,i)=>{
-        b.x += b.speed;
-        if(b.x > canvas.width) bullets.splice(i,1);
+        b.y -= b.speed;
+        if(b.y + b.h < 0) bullets.splice(i,1);
     });
 
     draw();
     requestAnimationFrame(update);
 }
 
-// رسم
+// رسم با چرخش
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // بازیکن
-    ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+    // بازیکن چرخیده (نوک به بالا)
+    ctx.save();
+    ctx.translate(player.x, player.y + player.h/2); // مرکز برای چرخش
+    ctx.rotate(-Math.PI/2); // 90 درجه جهت عمودی
+    ctx.drawImage(playerImg, -player.w/2, -player.h/2, player.w, player.h);
+    ctx.restore();
 
     // گلوله‌ها
     ctx.fillStyle = "#ff0";

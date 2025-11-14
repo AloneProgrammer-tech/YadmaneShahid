@@ -58,6 +58,7 @@ let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6, liv
 // گلوله‌ها و دشمن‌ها
 let bullets=[], enemies=[], explosions=[], enemyBullets=[];
 let score=0, startTime=0, lastDifficultyTime=0, enemyShotEnable=false, enemiesPassed=0;
+let frame=0;
 
 // دکمه‌ها
 let moveLeft=false, moveRight=false;
@@ -79,21 +80,29 @@ const loadingText = document.getElementById('loadingText');
 let firstLoad = true;
 setTimeout(()=>{ startBtn.style.display='block'; },5000);
 
-startBtn.addEventListener('click', ()=>{
-    loadingScreen.style.display='none';
+// تابع شروع بازی (بار اول و بازی مجدد)
+function startGame(){
     startTime = Date.now();
-    enemiesPassed = 0;
-    player.lives = 5;
-    bullets=[]; enemies=[]; enemyBullets=[]; explosions=[]; score=0; lastDifficultyTime=0;
+    frame = 0;
+    lastDifficultyTime = 0;
     enemySpeedBase = 2;
     enemyCountBase = 1;
     enemyShotEnable = false;
+    enemiesPassed = 0;
+    player.lives = 5;
+    player.x = canvas.width/2;
+    bullets = [];
+    enemies = [];
+    enemyBullets = [];
+    explosions = [];
+    loadingScreen.style.display='none';
     update();
-});
+}
+
+// بار اول و دکمه شروع
+startBtn.addEventListener('click', startGame);
 
 // ساخت دشمن
-let enemySpeedBase = 2;
-let enemyCountBase = 1;
 function spawnEnemy(){ 
     for(let i=0;i<enemyCountBase;i++){
         let size=80;
@@ -106,7 +115,6 @@ function enemyShoot(enemy){
 }
 
 // آپدیت بازی
-let frame=0;
 function update(){
     frame++; 
     if(frame%100===0) spawnEnemy();

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بازی پریدن و حرکت کردن</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      background: #222;
+      border: 3px solid #fff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="700" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    let player = {
+      x: 50,
+      y: 220,
+      w: 30,
+      h: 40,
+      dy: 0,
+      jumpPower: -12,
+      gravity: 0.6,
+      onGround: true,
+      speed: 4
+    };
+
+    let obstacles = [];
+    let frame = 0;
+    let score = 0;
+
+    function spawnObstacle() {
+      // اندازه و ارتفاع موانع را می‌توان اینجا تغییر داد
+      const h = 20 + Math.floor(Math.random() * 40);
+      obstacles.push({ x: canvas.width, y: 260 - h, w: 30, h: h });
+    }
+
+    function update() {
+      frame++;
+      // هر ~2 ثانیه یک مانع بساز (60fps حدودا 120 فریم)
+      if (frame % 120 === 0) spawnObstacle();
+
+      // حرکت افقی با کلیدهای جهتی
+      if (keys.ArrowRight || keys['Right']) player.x += player.speed;
+      if (keys.ArrowLeft || keys['Left']) player.x -= player.speed;
+
+      // محدودیت در صفحه
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > canvas.width) player.x = canvas.width - player.w;
+
+      // گرانش و پرش
+      player.y += player.dy;
+      if (!player.onGround) player.dy += player.gravity;
+
+      // برخورد با زمین (خط زمین در y = 220)
+      if (player.y >= 220) {
+        player.y = 220;
+        player.dy = 0;
+        player.onGround = true;
+      }
+
+      // حرکت موانع و چک برخورد
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        let o = obstacles[i];
+        o.x -= 4;
+
+        // حذف موانع پس از خروج از صفحه برای جلوگیری از انباشت
+        if (o.x + o.w < 0) obstacles.splice(i, 1);
+
+        // بررسی برخورد ساده مستطیلی
+        if (
+          player.x < o.x + o.w &&
+          player.x + player.w > o.x &&
+          player.y < o.y + o.h &&
+          player.y + player.h > o.y
+        ) {
+          // باخت — می‌تونی اینجا به جای reload نمایش منو یا دکمه دوباره شروع بذاری
+          alert("باختی! امتیاز: " + score);
+          document.location.reload();
+          return;
+        }
+      }
+
+      // امتیاز بر اساس فریم (می‌تونی بر اساس زمان واقعی هم حساب کنی)
+      score++;
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // بازیکن
+      ctx.fillStyle = "#0f0";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // موانع
+      ctx.fillStyle = "#f00";
+      for (let o of obstacles) {
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+      }
+
+      // امتیاز
+      ctx.fillStyle = "#fff";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 25);
+
+      // خط زمین (نمایشی)
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.beginPath();
+      ctx.moveTo(0, 260);
+      ctx.lineTo(canvas.width, 260);
+      ctx.stroke();
+    }
+
+    // کنترل کلیدها
+    const keys = {};
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      keys[e.code] = true;
+
+      // برای تشخیص دقیق کلید فاصله از e.code استفاده می‌کنیم
+      if ((e.code === "Space" || e.key === " ") && player.onGround) {
+        e.preventDefault(); // جلوگیری از اسکرول شدن صفحه هنگام فشردن اسپیس
+        player.dy = player.jumpPower;
+        player.onGround = false;
+      }
+    });
+
+    document.addEventListener("keyup", e => {
+      keys[e.key] = false;
+      keys[e.code] = false;
+    });
+
+    // برای کنترل روی موبایل یا لمس می‌تونی ناحیه‌هایی اضافه کنیم — بگو اگه لازم داری
+    update();
+  </script>
+</body>
+</html>

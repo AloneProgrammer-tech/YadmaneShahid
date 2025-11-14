@@ -27,7 +27,7 @@ canvas { display:block; margin:0 auto; }
 <body>
 
 <div id="loadingScreen">
-    <div id="loadingText">به بازی AlonePilot خوش آمدید<br>لطفا منتظر بمانید تا بازی لود شود...</div>
+    <div id="loadingText">به بازی خلبان تنها خوش آمدید<br>لطفا منتظر بمانید تا بازی لود شود...</div>
     <button id="startBtn">شروع بازی</button>
 </div>
 
@@ -58,7 +58,7 @@ let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6, liv
 
 // گلوله‌ها و دشمن‌ها
 let bullets=[], enemies=[], explosions=[], enemyBullets=[];
-let score=0, startTime=0, lastDifficultyTime=0, enemyShotEnable=false, enemiesPassed=0;
+let score=0, startTime=0, lastDifficultyTime=0, enemyShotEnable=false;
 let frame=0;
 
 // دکمه‌ها
@@ -80,6 +80,10 @@ const startBtn = document.getElementById('startBtn');
 const loadingText = document.getElementById('loadingText');
 setTimeout(()=>{ startBtn.style.display='block'; },5000);
 
+// پایه‌های دشمن
+let enemySpeedBase = 2;
+let enemyCountBase = 1;
+
 // تابع شروع بازی (بار اول و بازی مجدد)
 function startGame(){
     startTime = Date.now();
@@ -88,7 +92,6 @@ function startGame(){
     enemySpeedBase = 2;
     enemyCountBase = 1;
     enemyShotEnable = false;
-    enemiesPassed = 0;
     player.lives = 5;
     player.x = canvas.width/2;
     bullets = [];
@@ -102,17 +105,15 @@ function startGame(){
 
 // دکمه شروع
 startBtn.addEventListener('click', startGame);
-    // ساخت دشمن
-let enemySpeedBase = 2;
-let enemyCountBase = 1;
+
+// ساخت دشمن
 function spawnEnemy(){ 
     for(let i=0;i<enemyCountBase;i++){
         let size=80;
         enemies.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, speed:enemySpeedBase + Math.random()*2});
     }
 }
-
-// شلیک دشمن
+    // شلیک دشمن
 function enemyShoot(enemy){
     enemyBullets.push({x:enemy.x+enemy.w/2-5, y:enemy.y+enemy.h, w:10, h:20, speed:6});
 }
@@ -148,13 +149,14 @@ function update(){
 
     // حرکت دشمن‌ها
     enemies.forEach((en,i)=>{
-        en.y+=en.speed;
+        en.y += en.speed;
 
-        let boundaryY = player.y+player.h+50;
-        if(en.y + en.h > boundaryY){
-            enemiesPassed++;
+        // برخورد دشمن با بازیکن
+        if(en.x < player.x + player.w && en.x + en.w > player.x &&
+           en.y < player.y + player.h && en.y + en.h > player.y){
+            player.lives--;
             enemies.splice(i,1);
-            if(enemiesPassed>=3){
+            if(player.lives <= 0){
                 loadingScreen.style.display='flex';
                 loadingText.innerText='بازی مجدد';
                 startBtn.style.display='block';
@@ -162,8 +164,7 @@ function update(){
             return;
         }
 
-        if(enemyShotEnable && Math.random()<0.01){ enemyShoot(en); }
-
+        // برخورد گلوله بازیکن با دشمن
         bullets.forEach((b,j)=>{
             if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.y+b.h>en.y){
                 explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0});
@@ -171,20 +172,14 @@ function update(){
             }
         });
 
-        enemyBullets.forEach((eb,k)=>{
-            if(eb.x<player.x+player.w && eb.x+eb.w>player.x && eb.y<player.y+player.h && eb.y+eb.h>player.y){
-                player.lives--;
-                enemyBullets.splice(k,1);
-                if(player.lives<=0){
-                    loadingScreen.style.display='flex';
-                    loadingText.innerText='بازی مجدد';
-                    startBtn.style.display='block';
-                }
-            }
-        });
+        // شلیک دشمن
+        if(enemyShotEnable && Math.random()<0.01){ enemyShoot(en); }
     });
 
+    // حرکت گلوله دشمن
     enemyBullets.forEach((eb,i)=>{ eb.y+=eb.speed; if(eb.y>canvas.height) enemyBullets.splice(i,1); });
+
+    // انفجار
     explosions.forEach((ex,i)=>{ ex.frame++; if(ex.frame>20) explosions.splice(i,1); });
 
     draw();
@@ -202,6 +197,7 @@ function draw(){
     ctx.strokeRect(0, player.y+player.h+50, canvas.width, 20);
     ctx.setLineDash([]);
 
+    // بازیکن
     ctx.save();
     ctx.translate(player.x+player.w/2,player.y+player.h/2);
     ctx.rotate(-Math.PI/2);

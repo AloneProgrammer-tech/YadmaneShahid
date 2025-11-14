@@ -1,119 +1,4 @@
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AlonePilot</title>
-<style>
-body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
-canvas { display:block; margin:0 auto; }
-.btn { position:fixed; bottom:20px; width:60px; height:60px; border-radius:50%; background:rgba(255,0,0,0.8); color:white; font-size:30px; text-align:center; line-height:60px; user-select:none; z-index:10; }
-#btnLeft { left:20px; }
-#btnRight { left:100px; }
-#shootBtn { right:20px; bottom:20px; }
-#loadingScreen {
-    position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
-    display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:20px; z-index:100;
-    text-align:center;
-}
-#startBtn {
-    margin-top:20px; padding:10px 20px; font-size:18px; background:#f00; border:none; color:white; border-radius:5px; display:none;
-}
-#poweredBy {
-    position:fixed; bottom:5px; right:10px; color:white; font-size:14px; font-family:sans-serif;
-}
-</style>
-</head>
-<body>
-
-<div id="loadingScreen">
-    <div id="loadingText">به بازی خلبان تنها خوش آمدید<br>لطفا منتظر بمانید تا بازی لود شود...</div>
-    <button id="startBtn">شروع بازی</button>
-</div>
-
-<canvas id="game"></canvas>
-<div class="btn" id="btnLeft">◀</div>
-<div class="btn" id="btnRight">▶</div>
-<div class="btn" id="shootBtn">🔫</div>
-<div id="poweredBy">powered by Floki ❤️</div>
-
-<script>
-// Canvas
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// تصاویر و صداها
-let bgImg = new Image(); bgImg.src = 'assets/BackGround.png';
-let playerImg = new Image(); playerImg.src = 'assets/player.png';
-let enemyImg = new Image(); enemyImg.src = 'assets/Enemy.png';
-let bulletImg = new Image(); bulletImg.src = 'assets/Bullet.png';
-let boomImg = new Image(); boomImg.src = 'assets/BOOM.png';
-let gunSound = new Audio('assets/gun.mp3');
-
-// بازیکن
-let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6, lives:5 };
-
-// گلوله‌ها و دشمن‌ها
-let bullets=[], enemies=[], explosions=[], enemyBullets=[];
-let score=0, startTime=0, lastDifficultyTime=0, enemyShotEnable=false;
-let frame=0;
-
-// دکمه‌ها
-let moveLeft=false, moveRight=false;
-
-// شلیک بازیکن
-function shoot(){ bullets.push({x:player.x+player.w/2-10,y:player.y-20,w:20,h:20,speed:10}); gunSound.currentTime=0; gunSound.play(); }
-
-// کنترل دکمه‌ها
-document.getElementById("btnLeft").addEventListener("touchstart", ()=>moveLeft=true);
-document.getElementById("btnLeft").addEventListener("touchend", ()=>moveLeft=false);
-document.getElementById("btnRight").addEventListener("touchstart", ()=>moveRight=true);
-document.getElementById("btnRight").addEventListener("touchend", ()=>moveRight=false);
-document.getElementById("shootBtn").addEventListener("touchstart", shoot);
-
-// لودینگ
-const loadingScreen = document.getElementById('loadingScreen');
-const startBtn = document.getElementById('startBtn');
-const loadingText = document.getElementById('loadingText');
-setTimeout(()=>{ startBtn.style.display='block'; },5000);
-
-// پایه‌های دشمن
-let enemySpeedBase = 2;
-let enemyCountBase = 1;
-
-// تابع شروع بازی (بار اول و بازی مجدد)
-function startGame(){
-    startTime = Date.now();
-    frame = 0;
-    lastDifficultyTime = 0;
-    enemySpeedBase = 2;
-    enemyCountBase = 1;
-    enemyShotEnable = false;
-    player.lives = 5;
-    player.x = canvas.width/2;
-    bullets = [];
-    enemies = [];
-    enemyBullets = [];
-    explosions = [];
-    score = 0;
-    loadingScreen.style.display='none';
-    update();
-}
-
-// دکمه شروع
-startBtn.addEventListener('click', startGame);
-
-// ساخت دشمن
-function spawnEnemy(){ 
-    for(let i=0;i<enemyCountBase;i++){
-        let size=80;
-        enemies.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, speed:enemySpeedBase + Math.random()*2});
-    }
-}
-    // شلیک دشمن
+// شلیک دشمن
 function enemyShoot(enemy){
     enemyBullets.push({x:enemy.x+enemy.w/2-5, y:enemy.y+enemy.h, w:10, h:20, speed:6});
 }
@@ -147,11 +32,12 @@ function update(){
     // حرکت گلوله‌ها
     bullets.forEach((b,i)=>{ b.y-=b.speed; if(b.y+b.h<0) bullets.splice(i,1); });
 
-    // حرکت دشمن‌ها
-    enemies.forEach((en,i)=>{
+    // حرکت دشمن‌ها و برخورد با بازیکن و تیر بازیکن
+    for(let i=enemies.length-1; i>=0; i--){
+        let en = enemies[i];
         en.y += en.speed;
 
-        // برخورد دشمن با بازیکن
+        // برخورد با بازیکن
         if(en.x < player.x + player.w && en.x + en.w > player.x &&
            en.y < player.y + player.h && en.y + en.h > player.y){
             player.lives--;
@@ -161,29 +47,50 @@ function update(){
                 loadingText.innerText='بازی مجدد';
                 startBtn.style.display='block';
             }
-            return;
+            continue;
         }
 
         // برخورد گلوله بازیکن با دشمن
-        bullets.forEach((b,j)=>{
+        for(let j=bullets.length-1; j>=0; j--){
+            let b = bullets[j];
             if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.y+b.h>en.y){
                 explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0});
-                enemies.splice(i,1); bullets.splice(j,1); score++;
+                enemies.splice(i,1);
+                bullets.splice(j,1);
+                score++;
+                break;
             }
-        });
+        }
 
         // شلیک دشمن
         if(enemyShotEnable && Math.random()<0.01){ enemyShoot(en); }
-    });
+    }
 
-    // حرکت گلوله دشمن
-    enemyBullets.forEach((eb,i)=>{ eb.y+=eb.speed; if(eb.y>canvas.height) enemyBullets.splice(i,1); });
+    // حرکت و برخورد تیر دشمن با بازیکن
+    for(let i=enemyBullets.length-1; i>=0; i--){
+        let eb = enemyBullets[i];
+        eb.y += eb.speed;
+        if(eb.y>canvas.height){ enemyBullets.splice(i,1); continue; }
+        if(eb.x < player.x + player.w && eb.x + eb.w > player.x &&
+           eb.y < player.y + player.h && eb.y + eb.h > player.y){
+            player.lives--;
+            enemyBullets.splice(i,1);
+            if(player.lives <=0){
+                loadingScreen.style.display='flex';
+                loadingText.innerText='بازی مجدد';
+                startBtn.style.display='block';
+            }
+        }
+    }
 
     // انفجار
-    explosions.forEach((ex,i)=>{ ex.frame++; if(ex.frame>20) explosions.splice(i,1); });
+    for(let i=explosions.length-1;i>=0;i++){
+        explosions[i].frame++;
+        if(explosions[i].frame>20) explosions.splice(i,1);
+    }
 
     draw();
-    requestAnimationFrame(update);
+    if(player.lives>0) requestAnimationFrame(update);
 }
 
 // رسم
@@ -209,9 +116,7 @@ function draw(){
     enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
     explosions.forEach(ex=>ctx.drawImage(boomImg,ex.x,ex.y,ex.w,ex.h));
 
-    ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30);
-
-    for(let i=0;i<5;i++){
+    ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30);for(let i=0;i<5;i++){
         ctx.fillStyle = i<player.lives?"red":"black";
         ctx.fillRect(10+i*25,50,20,20);
     }

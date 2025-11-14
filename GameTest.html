@@ -3,30 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>جنگ هوایی عمودی</title>
+<title>AlonePilot</title>
 <style>
-    body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
-    canvas { display:block; margin:0 auto; }
-    .btn { position:fixed; bottom:20px; width:60px; height:60px; border-radius:50%; background:rgba(255,0,0,0.8); color:white; font-size:30px; text-align:center; line-height:60px; user-select:none; z-index:10; }
-    #btnLeft { left:20px; }
-    #btnRight { left:100px; }
-    #shootBtn { right:20px; bottom:20px; }
-    #loadingScreen {
-        position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
-        display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:20px; z-index:100;
-    }
-    #startBtn {
-        margin-top:20px; padding:10px 20px; font-size:18px; background:#f00; border:none; color:white; border-radius:5px; display:none;
-    }
-    #poweredBy {
-        position:fixed; bottom:5px; right:10px; color:white; font-size:14px; font-family:sans-serif;
-    }
+body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
+canvas { display:block; margin:0 auto; }
+.btn { position:fixed; bottom:20px; width:60px; height:60px; border-radius:50%; background:rgba(255,0,0,0.8); color:white; font-size:30px; text-align:center; line-height:60px; user-select:none; z-index:10; }
+#btnLeft { left:20px; }
+#btnRight { left:100px; }
+#shootBtn { right:20px; bottom:20px; }
+#loadingScreen {
+    position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
+    display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:20px; z-index:100;
+    text-align:center;
+}
+#startBtn {
+    margin-top:20px; padding:10px 20px; font-size:18px; background:#f00; border:none; color:white; border-radius:5px; display:none;
+}
+#poweredBy {
+    position:fixed; bottom:5px; right:10px; color:white; font-size:14px; font-family:sans-serif;
+}
 </style>
 </head>
 <body>
 
 <div id="loadingScreen">
-    <div id="loadingText">لطفا چند لحظه صبر کنید...</div>
+    <div id="loadingText">به بازی AlonePilot خوش آمدید<br>لطفا منتظر بمانید تا بازی لود شود...</div>
     <button id="startBtn">شروع بازی</button>
 </div>
 
@@ -77,7 +78,6 @@ document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
 const loadingText = document.getElementById('loadingText');
-let firstLoad = true;
 setTimeout(()=>{ startBtn.style.display='block'; },5000);
 
 // تابع شروع بازی (بار اول و بازی مجدد)
@@ -95,21 +95,24 @@ function startGame(){
     enemies = [];
     enemyBullets = [];
     explosions = [];
+    score = 0;
     loadingScreen.style.display='none';
     update();
 }
 
-// بار اول و دکمه شروع
+// دکمه شروع
 startBtn.addEventListener('click', startGame);
-
-// ساخت دشمن
+    // ساخت دشمن
+let enemySpeedBase = 2;
+let enemyCountBase = 1;
 function spawnEnemy(){ 
     for(let i=0;i<enemyCountBase;i++){
         let size=80;
         enemies.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, speed:enemySpeedBase + Math.random()*2});
     }
 }
-    // شلیک دشمن
+
+// شلیک دشمن
 function enemyShoot(enemy){
     enemyBullets.push({x:enemy.x+enemy.w/2-5, y:enemy.y+enemy.h, w:10, h:20, speed:6});
 }
@@ -127,7 +130,7 @@ function update(){
             enemySpeedBase += 0.5; enemyCountBase += 1; lastDifficultyTime=1;
         } else if((elapsed>10 && elapsed<=30) && lastDifficultyTime==1){
             enemySpeedBase += 0.5; enemyCountBase += 1; lastDifficultyTime=2;
-        } else if(elapsed>30 && elapsed/10 >= lastDifficultyTime){
+        } else if(elapsed>30 && Math.floor(elapsed/10)+1 > lastDifficultyTime){
             enemySpeedBase += 0.5; enemyCountBase += 1; lastDifficultyTime = Math.floor(elapsed/10)+1;
         }
 
@@ -147,7 +150,6 @@ function update(){
     enemies.forEach((en,i)=>{
         en.y+=en.speed;
 
-        // خط پشت بازیکن (مرز)
         let boundaryY = player.y+player.h+50;
         if(en.y + en.h > boundaryY){
             enemiesPassed++;
@@ -160,10 +162,8 @@ function update(){
             return;
         }
 
-        // شلیک دشمن
         if(enemyShotEnable && Math.random()<0.01){ enemyShoot(en); }
 
-        // برخورد گلوله بازیکن با دشمن
         bullets.forEach((b,j)=>{
             if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.y+b.h>en.y){
                 explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0});
@@ -171,7 +171,6 @@ function update(){
             }
         });
 
-        // برخورد با بازیکن توسط تیر دشمن
         enemyBullets.forEach((eb,k)=>{
             if(eb.x<player.x+player.w && eb.x+eb.w>player.x && eb.y<player.y+player.h && eb.y+eb.h>player.y){
                 player.lives--;
@@ -185,10 +184,7 @@ function update(){
         });
     });
 
-    // حرکت گلوله دشمن
     enemyBullets.forEach((eb,i)=>{ eb.y+=eb.speed; if(eb.y>canvas.height) enemyBullets.splice(i,1); });
-
-    // انفجار
     explosions.forEach((ex,i)=>{ ex.frame++; if(ex.frame>20) explosions.splice(i,1); });
 
     draw();
@@ -200,35 +196,25 @@ function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
 
-    // خط‌چین ثابت پشت بازیکن
+    // خط‌چین پشت بازیکن
     ctx.strokeStyle="yellow";
     ctx.setLineDash([5,5]);
     ctx.strokeRect(0, player.y+player.h+50, canvas.width, 20);
     ctx.setLineDash([]);
 
-    // بازیکن
     ctx.save();
     ctx.translate(player.x+player.w/2,player.y+player.h/2);
     ctx.rotate(-Math.PI/2);
     ctx.drawImage(playerImg,-player.w/2,-player.h/2,player.w,player.h);
     ctx.restore();
 
-    // گلوله‌ها
     bullets.forEach(b=>ctx.drawImage(bulletImg,b.x,b.y,b.w,b.h));
-    enemyBullets.forEach(eb=>{
-        ctx.fillStyle="red"; ctx.fillRect(eb.x,eb.y,eb.w,eb.h);
-    });
-
-    // دشمن‌ها
+    enemyBullets.forEach(eb=>{ ctx.fillStyle="red"; ctx.fillRect(eb.x,eb.y,eb.w,eb.h); });
     enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
-
-    // انفجار
     explosions.forEach(ex=>ctx.drawImage(boomImg,ex.x,ex.y,ex.w,ex.h));
 
-    // امتیاز
     ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30);
 
-    // جان‌ها
     for(let i=0;i<5;i++){
         ctx.fillStyle = i<player.lives?"red":"black";
         ctx.fillRect(10+i*25,50,20,20);

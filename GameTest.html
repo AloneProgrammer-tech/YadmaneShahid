@@ -11,9 +11,21 @@
     #btnLeft { left:20px; }
     #btnRight { left:100px; }
     #shootBtn { right:20px; bottom:20px; }
+    #loadingScreen {
+        position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
+        display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:20px; z-index:100;
+    }
+    #startBtn {
+        margin-top:20px; padding:10px 20px; font-size:18px; background:#f00; border:none; color:white; border-radius:5px; display:none;
+    }
 </style>
 </head>
 <body>
+
+<div id="loadingScreen">
+    <div>لطفا چند ثانیه صبر کنید...</div>
+    <button id="startBtn">شروع بازی</button>
+</div>
 
 <canvas id="game"></canvas>
 <div class="btn" id="btnLeft">◀</div>
@@ -21,6 +33,7 @@
 <div class="btn" id="shootBtn">🔫</div>
 
 <script>
+// Canvas
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
@@ -33,13 +46,11 @@ let playerImg = new Image(); playerImg.src = 'assets/player.png';
 let enemyImg = new Image(); enemyImg.src = 'assets/Enemy.png';
 let bulletImg = new Image(); bulletImg.src = 'assets/Bullet.png';
 let boomImg = new Image(); boomImg.src = 'assets/BOOM.png';
-
 // صدا
 let gunSound = new Audio('assets/gun.mp3');
 
 // بازیکن
 let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6 };
-
 // گلوله‌ها و دشمن‌ها
 let bullets=[], enemies=[], explosions=[], score=0;
 let moveLeft=false, moveRight=false;
@@ -54,18 +65,49 @@ document.getElementById("btnRight").addEventListener("touchstart", ()=>moveRight
 document.getElementById("btnRight").addEventListener("touchend", ()=>moveRight=false);
 document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 
+// لودینگ
+const loadingScreen = document.getElementById('loadingScreen');
+const startBtn = document.getElementById('startBtn');
+setTimeout(()=>{ startBtn.style.display='block'; },5000);
+startBtn.addEventListener('click', ()=>{ loadingScreen.style.display='none'; startTime = Date.now(); });
+
 // ساخت دشمن
-function spawnEnemy(){ let size=80; enemies.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, speed:2+Math.random()*2}); }
+let enemySpeedBase = 2;
+let enemyCountBase = 1;
+function spawnEnemy(){ 
+    for(let i=0;i<enemyCountBase;i++){
+        let size=80;
+        enemies.push({x:Math.random()*(canvas.width-size), y:-size, w:size, h:size, speed:enemySpeedBase + Math.random()*2});
+    }
+}
+
+// سختی افزایشی
+let lastDifficultyTime = 0;
+let startTime = 0;
 
 // آپدیت بازی
 let frame=0;
 function update(){
-    frame++; if(frame%100===0) spawnEnemy();
+    frame++;
+    if(frame%100===0) spawnEnemy();
+
+    // افزایش سختی هر 10 ثانیه
+    if(startTime){
+        let elapsed = (Date.now() - startTime)/1000;
+        if(elapsed - lastDifficultyTime >= 10){
+            enemySpeedBase += 0.5;
+            enemyCountBase += 1;
+            lastDifficultyTime = elapsed;
+        }
+    }
+
+    // حرکت بازیکن
     if(moveLeft) player.x-=player.speed;
     if(moveRight) player.x+=player.speed;
     if(player.x<0) player.x=0; if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
 
-    bullets.forEach((b,i)=>{ b.y-=b.speed; if(b.y+b.h<0) bullets.splice(i,1); });
+    // حرکت گلوله‌ها
+    bullets.forEach((b,i)=>{ b.y-=b.speed; if(b.y+b.h<0) bullets.splice(i,1); });// حرکت دشمن‌ها
     enemies.forEach((en,i)=>{
         en.y+=en.speed;
         bullets.forEach((b,j)=>{
@@ -80,6 +122,7 @@ function update(){
         }
         if(en.y>canvas.height) enemies.splice(i,1);
     });
+
     explosions.forEach((ex,i)=>{ ex.frame++; if(ex.frame>20) explosions.splice(i,1); });
     draw();
     requestAnimationFrame(update);
@@ -93,7 +136,8 @@ function draw(){
     ctx.translate(player.x+player.w/2,player.y+player.h/2);
     ctx.rotate(-Math.PI/2);
     ctx.drawImage(playerImg,-player.w/2,-player.h/2,player.w,player.h);
-    ctx.restore();bullets.forEach(b=>ctx.drawImage(bulletImg,b.x,b.y,b.w,b.h));
+    ctx.restore();
+    bullets.forEach(b=>ctx.drawImage(bulletImg,b.x,b.y,b.w,b.h));
     enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
     explosions.forEach(ex=>ctx.drawImage(boomImg,ex.x,ex.y,ex.w,ex.h));
     ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30);

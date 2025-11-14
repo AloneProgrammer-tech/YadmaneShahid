@@ -46,6 +46,7 @@ let playerImg = new Image(); playerImg.src = 'assets/player.png';
 let enemyImg = new Image(); enemyImg.src = 'assets/Enemy.png';
 let bulletImg = new Image(); bulletImg.src = 'assets/Bullet.png';
 let boomImg = new Image(); boomImg.src = 'assets/BOOM.png';
+
 // صدا
 let gunSound = new Audio('assets/gun.mp3');
 
@@ -69,7 +70,12 @@ document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
 setTimeout(()=>{ startBtn.style.display='block'; },5000);
-startBtn.addEventListener('click', ()=>{ loadingScreen.style.display='none'; startTime = Date.now(); });
+let startTime = 0;
+startBtn.addEventListener('click', ()=>{
+    loadingScreen.style.display='none';
+    startTime = Date.now();
+    update(); // شروع بازی
+});
 
 // ساخت دشمن
 let enemySpeedBase = 2;
@@ -83,12 +89,11 @@ function spawnEnemy(){
 
 // سختی افزایشی
 let lastDifficultyTime = 0;
-let startTime = 0;
 
 // آپدیت بازی
 let frame=0;
 function update(){
-    frame++;
+    frame++; 
     if(frame%100===0) spawnEnemy();
 
     // افزایش سختی هر 10 ثانیه
@@ -104,10 +109,10 @@ function update(){
     // حرکت بازیکن
     if(moveLeft) player.x-=player.speed;
     if(moveRight) player.x+=player.speed;
-    if(player.x<0) player.x=0; if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
+    if(player.x<0) player.x=0; if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;// حرکت گلوله‌ها
+    bullets.forEach((b,i)=>{ b.y-=b.speed; if(b.y+b.h<0) bullets.splice(i,1); });
 
-    // حرکت گلوله‌ها
-    bullets.forEach((b,i)=>{ b.y-=b.speed; if(b.y+b.h<0) bullets.splice(i,1); });// حرکت دشمن‌ها
+    // حرکت دشمن‌ها و برخورد
     enemies.forEach((en,i)=>{
         en.y+=en.speed;
         bullets.forEach((b,j)=>{
@@ -142,8 +147,6 @@ function draw(){
     explosions.forEach(ex=>ctx.drawImage(boomImg,ex.x,ex.y,ex.w,ex.h));
     ctx.fillStyle="#fff"; ctx.font="20px Arial"; ctx.fillText("Score: "+score,10,30);
 }
-
-update();
 </script>
 
 </body>

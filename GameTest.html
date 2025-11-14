@@ -2,35 +2,33 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>جنگ هواپیماها</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>جنگ هواپیماها - موبایل</title>
 <style>
     body {
         margin: 0;
         overflow: hidden;
         background: #111;
-        touch-action: none; /* مهم برای کنترل لمسی */
+        touch-action: none;
         font-family: sans-serif;
     }
     canvas {
         display: block;
-        margin: auto;
-        border: 2px solid #fff;
+        margin: 0 auto;
         background: #222;
     }
-    /* دکمه شلیک */
     #shootBtn {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 80px;
-        height: 80px;
+        bottom: 10px;
+        right: 10px;
+        width: 70px;
+        height: 70px;
         border-radius: 50%;
         background: #f00;
         color: white;
         font-size: 20px;
         text-align: center;
-        line-height: 80px;
+        line-height: 70px;
         user-select: none;
         z-index: 10;
     }
@@ -38,65 +36,47 @@
 </head>
 <body>
 
-<canvas id="game" width="700" height="400"></canvas>
+<canvas id="game"></canvas>
 <div id="shootBtn">🔫</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const shootBtn = document.getElementById("shootBtn");
-
-// تصاویر
-let playerImg = new Image();
-playerImg.src = 'assets/player.png';
-
-let enemyImg = new Image();
-enemyImg.src = 'assets/enemy1.png';
-
-let bulletImg = new Image();
-bulletImg.src = 'assets/bullet.png';
+// تنظیم اندازه canvas روی موبایل
+function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 // بازیکن
+let playerImg = new Image();
+playerImg.src = 'assets/player.png'; // فقط همین تصویر موجود است
+
 let player = {
     x: 50,
-    y: 180,
-    w: 60,
-    h: 60
+    y: canvas.height/2 - 50,
+    w: 100,
+    h: 100
 };
 
 // گلوله‌ها
 let bullets = [];
 
-// دشمن‌ها
-let enemies = [];
-let frame = 0;
-let score = 0;
-
-// ساخت دشمن
-function spawnEnemy() {
-    let size = 50;
-    enemies.push({
-        x: canvas.width,
-        y: Math.random() * (canvas.height - size),
-        w: size,
-        h: size,
-        speed: 3 + Math.random() * 2
-    });
-}
-
 // شلیک گلوله
 function shoot() {
     bullets.push({
         x: player.x + player.w,
-        y: player.y + player.h / 2 - 10,
+        y: player.y + player.h/2 - 10,
         w: 20,
         h: 20,
         speed: 8
     });
 }
 
-// کنترل لمسی بازیکن
+// کنترل حرکت بازیکن لمسی
 canvas.addEventListener("touchmove", function(e){
     let t = e.touches[0];
     let rect = canvas.getBoundingClientRect();
@@ -106,48 +86,15 @@ canvas.addEventListener("touchmove", function(e){
     e.preventDefault();
 });
 
-// دکمه شلیک لمسی
-shootBtn.addEventListener("touchstart", shoot);
+// دکمه شلیک
+document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 
 // آپدیت بازی
 function update() {
-    frame++;
-    if(frame % 80 === 0) spawnEnemy();
-
     // حرکت گلوله
     bullets.forEach((b,i)=>{
         b.x += b.speed;
         if(b.x > canvas.width) bullets.splice(i,1);
-    });
-
-    // حرکت دشمن
-    enemies.forEach((en,i)=>{
-        en.x -= en.speed;
-
-        // برخورد گلوله با دشمن
-        bullets.forEach((b,j)=>{
-            if(
-                b.x < en.x + en.w &&
-                b.x + b.w > en.x &&
-                b.y < en.y + en.h &&
-                b.y + b.h > en.y
-            ){
-                enemies.splice(i,1);
-                bullets.splice(j,1);
-                score++;
-            }
-        });
-
-        // برخورد دشمن با بازیکن = باخت
-        if(
-            player.x < en.x + en.w &&
-            player.x + player.w > en.x &&
-            player.y < en.y + en.h &&
-            player.y + player.h > en.y
-        ){
-            alert("باختی! امتیاز: " + score);
-            document.location.reload();
-        }
     });
 
     draw();
@@ -162,19 +109,10 @@ function draw(){
     ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 
     // گلوله‌ها
+    ctx.fillStyle = "#ff0";
     bullets.forEach(b=>{
-        ctx.drawImage(bulletImg, b.x, b.y, b.w, b.h);
+        ctx.fillRect(b.x, b.y, b.w, b.h);
     });
-
-    // دشمن‌ها
-    enemies.forEach(en=>{
-        ctx.drawImage(enemyImg, en.x, en.y, en.w, en.h);
-    });
-
-    // امتیاز
-    ctx.fillStyle = "#fff";
-    ctx.font = "20px Arial";
-    ctx.fillText("Score: " + score, 10, 25);
 }
 
 update();

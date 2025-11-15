@@ -54,9 +54,9 @@ let boomImg = new Image(); boomImg.src = 'assets/BOOM.png';
 
 let gunSoundPool = [], burstSoundPool = [], bombSoundPool = [];
 for(let i=0;i<5;i++){
-    let g = new Audio('assets/gun.mp3'); gunSoundPool.push(g);
-    let b = new Audio('assets/burst.mp3'); burstSoundPool.push(b);
-    let bm = new Audio('assets/bomb.mp3'); bombSoundPool.push(bm);
+    gunSoundPool.push(new Audio('assets/gun.mp3'));
+    burstSoundPool.push(new Audio('assets/burst.mp3'));
+    bombSoundPool.push(new Audio('assets/bomb.mp3'));
 }
 
 let bgMusic = new Audio('assets/zamine.mp3'); bgMusic.loop=true; bgMusic.volume=0.5;
@@ -99,7 +99,7 @@ setTimeout(()=>{ startBtn.style.display='block'; },5000);
 // پایه‌های دشمن
 let enemySpeedBase = 2;
 let enemyCountBase = 1;
-      // شروع بازی
+    // شروع بازی
 function startGame(){
     startTime = Date.now();
     frame = 0;
@@ -201,7 +201,7 @@ function update(){
             enemies.splice(i,1);
             if(enemiesPassed >= 3){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText='بازی مجدد\nامتیاز شما: ' + score;
                 startBtn.style.display='block';
             }
             continue;
@@ -214,7 +214,7 @@ function update(){
             enemies.splice(i,1);
             if(player.lives <= 0){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText='بازی مجدد\nامتیاز شما: ' + score;
                 startBtn.style.display='block';
             }
             continue;
@@ -232,10 +232,12 @@ function update(){
                 break;
             }
         }
-          // شلیک دشمن با محدودیت
-        if(enemyShotEnable && en.shotsFired < en.maxShots && Math.random()<0.01){ 
-            enemyShoot(en); 
-            en.shotsFired++;
+        // شلیک دشمن با محدودیت فاصله از مرز و تعداد تیر
+        if(enemyShotEnable && en.shotsFired < en.maxShots && Math.random()<0.01){
+            if(en.y + en.h < player.y + player.h + 50){  // فقط بالای خط‌چین شلیک کند
+                enemyShoot(en);
+                en.shotsFired++;
+            }
         }
     }
 
@@ -250,7 +252,7 @@ function update(){
             enemyBullets.splice(i,1);
             if(player.lives <=0){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText='بازی مجدد\nامتیاز شما: ' + score;
                 startBtn.style.display='block';
             }
         }

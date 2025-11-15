@@ -31,7 +31,7 @@ canvas { display:block; margin:0 auto; }
 <body>
 
 <div id="loadingScreen">
-    <div id="loadingText">به بازی خلبان تنها خوش آمدید<br>لطفا منتظر بمانید تا بازی لود شود...</div>
+    <div id="loadingText">به بازی خلبان تنها خوش آمدید<br>لطفا منتظر بمانید...</div>
     <button id="startBtn">شروع بازی</button>
 </div>
 
@@ -50,26 +50,11 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 // تصاویر
-let bgImg = new Image(), playerImg = new Image(), enemyImg = new Image(), bulletImg = new Image(), boomImg = new Image();
-bgImg.src = 'assets/BackGround.png';
-playerImg.src = 'assets/player.png';
-enemyImg.src = 'assets/Enemy.png';
-bulletImg.src = 'assets/Bullet.png';
-boomImg.src = 'assets/BOOM.png';
-
-// بارگذاری تصاویر و نمایش دکمه شروع بعد از آماده شدن همه
-let assetsLoaded=0;
-function checkAllLoaded(){
-    assetsLoaded++;
-    if(assetsLoaded>=5){
-        startBtn.style.display='block';
-    }
-}
-bgImg.onload = checkAllLoaded;
-playerImg.onload = checkAllLoaded;
-enemyImg.onload = checkAllLoaded;
-bulletImg.onload = checkAllLoaded;
-boomImg.onload = checkAllLoaded;
+let bgImg = new Image(); bgImg.src='assets/BackGround.png';
+let playerImg = new Image(); playerImg.src='assets/player.png';
+let enemyImg = new Image(); enemyImg.src='assets/Enemy.png';
+let bulletImg = new Image(); bulletImg.src='assets/Bullet.png';
+let boomImg = new Image(); boomImg.src='assets/BOOM.png';
 
 // Pool صداها
 function createSoundPool(src,count=5){
@@ -95,19 +80,19 @@ let frame=0, enemiesPassed=0;
 // دکمه‌ها
 let moveLeft=false, moveRight=false;
 function shoot(){ bullets.push({x:player.x+player.w/2-10,y:player.y-20,w:20,h:20,speed:10}); playSound(gunPool); }
-
 document.getElementById("btnLeft").addEventListener("touchstart", ()=>moveLeft=true);
 document.getElementById("btnLeft").addEventListener("touchend", ()=>moveLeft=false);
 document.getElementById("btnRight").addEventListener("touchstart", ()=>moveRight=true);
 document.getElementById("btnRight").addEventListener("touchend", ()=>moveRight=false);
 document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 
+// لودینگ و نمایش دکمه بعد از 5 ثانیه
 const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
-const loadingText = document.getElementById('loadingText');
+setTimeout(()=>{ startBtn.style.display='block'; },5000);
 
-let enemySpeedBase=2, enemyCountBase=1;
-    function startGame(){
+// تابع شروع بازی
+function startGame(){
     startTime=Date.now(); frame=0; lastDifficultyTime=0; enemySpeedBase=2; enemyCountBase=1; enemyShotEnable=false;
     player.lives=5; player.x=canvas.width/2; bullets=[]; enemies=[]; enemyBullets=[]; explosions=[]; enemiesPassed=0; score=0;
     loadingScreen.style.display='none';
@@ -117,6 +102,7 @@ let enemySpeedBase=2, enemyCountBase=1;
 startBtn.addEventListener('click', startGame);
 
 // دشمن
+let enemySpeedBase=2, enemyCountBase=1;
 function spawnEnemy(){ 
     for(let i=0;i<enemyCountBase;i++){
         let size=80;
@@ -140,7 +126,6 @@ function update(){
     if(moveRight) player.x+=player.speed;
     if(player.x<0) player.x=0; if(player.x+player.w>canvas.width) player.x=canvas.width-player.w;
 
-    // گلوله‌ها
     bullets.forEach((b,bi)=>{
         b.y-=b.speed;
         for(let ei=enemyBullets.length-1;ei>=0;ei--){
@@ -150,31 +135,24 @@ function update(){
         if(b.y+b.h<0) bullets.splice(bi,1);
     });
 
-    // دشمن‌ها
     for(let i=enemies.length-1;i>=0;i--){
-        let en=enemies[i];
-        en.y+=en.speed;
-
+        let en=enemies[i]; en.y+=en.speed;
         if(en.y+en.h>player.y+player.h+50){ enemiesPassed++; enemies.splice(i,1);
-            if(enemiesPassed>=3){ loadingScreen.style.display='flex'; loadingText.innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
-
+            if(enemiesPassed>=3){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
         if(en.x<player.x+player.w && en.x+en.w>player.x && en.y<player.y+player.h && en.y+en.h>player.y){ player.lives--; enemies.splice(i,1);
-            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingText.innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
-
+            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
         for(let j=bullets.length-1;j>=0;j--){
             let b=bullets[j];
             if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.y+b.h>en.y){ explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0}); enemies.splice(i,1); bullets.splice(j,1); playSound(bombPool); score++; break; }
         }
-
         if(enemyShotEnable && en.shotsFired<en.maxShots && Math.random()<0.01 && en.y<player.y+player.h-100){ enemyShoot(en); en.shotsFired++; }
     }
 
-    // تیر دشمن
     for(let i=enemyBullets.length-1;i>=0;i--){
         let eb=enemyBullets[i]; eb.y+=eb.speed;
         if(eb.y>canvas.height){enemyBullets.splice(i,1); continue;}
         if(eb.x<player.x+player.w && eb.x+eb.w>player.x && eb.y<player.y+player.h && eb.y+eb.h>player.y){ player.lives--; enemyBullets.splice(i,1);
-            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingText.innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; }
+            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; }
         }
     }
 
@@ -183,9 +161,9 @@ function update(){
     draw();
     if(player.lives>0 && enemiesPassed<3) requestAnimationFrame(update);
 }
-    // رسم
-function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+// رسم
+function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
     ctx.strokeStyle="yellow"; ctx.setLineDash([5,5]); ctx.strokeRect(0,player.y+player.h+50,canvas.width,20); ctx.setLineDash([]);
     ctx.save(); ctx.translate(player.x+player.w/2,player.y+player.h/2); ctx.rotate(-Math.PI/2); ctx.drawImage(playerImg,-player.w/2,-player.h/2,player.w,player.h); ctx.restore();

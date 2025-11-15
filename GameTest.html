@@ -57,7 +57,9 @@ let boomImg = new Image(); boomImg.src='assets/BOOM.png';
 
 // Pool صداها
 function createSoundPool(src,count=5){ let pool=[]; for(let i=0;i<count;i++) pool.push(new Audio(src)); return pool;}
-let gunPool=createSoundPool('assets/gun.mp3'); let burstPool=createSoundPool('assets/burst.mp3'); let bombPool=createSoundPool('assets/bomb.mp3');
+let gunPool=createSoundPool('assets/gun.mp3'); 
+let burstPool=createSoundPool('assets/burst.mp3'); 
+let bombPool=createSoundPool('assets/bomb.mp3');
 function playSound(pool){ for(let s of pool){ if(s.paused){ s.currentTime=0; s.play(); return; }}}
 let bgMusic = new Audio('assets/zamine.mp3'); bgMusic.loop=true; bgMusic.volume=0.5;
 
@@ -81,13 +83,16 @@ document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 // دکمه شروع
 const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
-startBtn.addEventListener('click', ()=>{ loadingScreen.style.display='none'; startGame(); });
+startBtn.addEventListener('click', ()=>{
+    loadingScreen.style.display='none';
+    startGame();
+});
 
 // شروع بازی
 let enemySpeedBase=2, enemyCountBase=1;
 function startGame(){
     startTime=Date.now(); frame=0; lastDifficultyTime=0; enemySpeedBase=2; enemyCountBase=1; enemyShotEnable=false;
-    player.lives=5; player.x=canvas.width/2; bullets=[]; enemies=[]; enemyBullets=[]; explosions=[]; enemiesPassed=0; score=0;
+      player.lives=5; player.x=canvas.width/2; bullets=[]; enemies=[]; enemyBullets=[]; explosions=[]; enemiesPassed=0; score=0;
     gameStarted=true;
     bgMusic.currentTime=0; bgMusic.play();
     requestAnimationFrame(update);
@@ -156,12 +161,12 @@ function update(){
 
 function endGame(){
     gameStarted=false;
-    loadingScreen.style.display='flex';
-    loadingScreen.querySelector('#loadingText')?.remove();
+    document.getElementById('scoreText')?.remove();
     const textDiv = document.createElement('div');
-    textDiv.id='loadingText';
+    textDiv.id='scoreText';
     textDiv.innerText=بازی مجدد\nامتیاز شما: ${score};
     loadingScreen.insertBefore(textDiv,startBtn);
+    loadingScreen.style.display='flex';
 }
 
 // رسم

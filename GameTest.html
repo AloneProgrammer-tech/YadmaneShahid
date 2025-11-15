@@ -7,11 +7,9 @@
 <style>
 body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
 canvas { display:block; margin:0 auto; }
-.btn { 
-    position:fixed; bottom:20px; width:80px; height:80px; border-radius:50%; 
-    background:rgba(255,0,0,0.6); color:white; font-size:36px; text-align:center; 
-    line-height:80px; user-select:none; z-index:10; border:none;
-}
+.btn { position:fixed; bottom:20px; width:80px; height:80px; border-radius:50%; 
+      background:rgba(255,0,0,0.6); color:white; font-size:36px; text-align:center; 
+      line-height:80px; user-select:none; z-index:10; border:none; }
 #btnLeft { left:20px; }
 #btnRight { left:120px; }
 #shootBtn { right:20px; bottom:20px; }
@@ -46,9 +44,9 @@ canvas { display:block; margin:0 auto; }
 // Canvas
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', ()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
 
 // تصاویر
 let bgImg = new Image(); bgImg.src='assets/BackGround.png';
@@ -58,16 +56,9 @@ let bulletImg = new Image(); bulletImg.src='assets/Bullet.png';
 let boomImg = new Image(); boomImg.src='assets/BOOM.png';
 
 // Pool صداها
-function createSoundPool(src,count=5){
-    let pool=[];
-    for(let i=0;i<count;i++) pool.push(new Audio(src));
-    return pool;
-}
-let gunPool = createSoundPool('assets/gun.mp3',5);
-let burstPool = createSoundPool('assets/burst.mp3',5);
-let bombPool = createSoundPool('assets/bomb.mp3',5);
+function createSoundPool(src,count=5){ let pool=[]; for(let i=0;i<count;i++) pool.push(new Audio(src)); return pool;}
+let gunPool=createSoundPool('assets/gun.mp3'); let burstPool=createSoundPool('assets/burst.mp3'); let bombPool=createSoundPool('assets/bomb.mp3');
 function playSound(pool){ for(let s of pool){ if(s.paused){ s.currentTime=0; s.play(); return; }}}
-
 let bgMusic = new Audio('assets/zamine.mp3'); bgMusic.loop=true; bgMusic.volume=0.5;
 
 // بازیکن
@@ -76,7 +67,7 @@ let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6, liv
 // گلوله‌ها و دشمن‌ها
 let bullets=[], enemies=[], explosions=[], enemyBullets=[];
 let score=0, startTime=0, lastDifficultyTime=0, enemyShotEnable=false;
-let frame=0, enemiesPassed=0;
+let frame=0, enemiesPassed=0, gameStarted=false;
 
 // دکمه‌ها
 let moveLeft=false, moveRight=false;
@@ -87,23 +78,22 @@ document.getElementById("btnRight").addEventListener("touchstart", ()=>moveRight
 document.getElementById("btnRight").addEventListener("touchend", ()=>moveRight=false);
 document.getElementById("shootBtn").addEventListener("touchstart", shoot);
 
-// دکمه شروع همیشه قابل کلیک
+// دکمه شروع
 const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
-startBtn.addEventListener('click', ()=>{
-    loadingScreen.style.display='none';
-    startGame();
-});
+startBtn.addEventListener('click', ()=>{ loadingScreen.style.display='none'; startGame(); });
 
 // شروع بازی
+let enemySpeedBase=2, enemyCountBase=1;
 function startGame(){
     startTime=Date.now(); frame=0; lastDifficultyTime=0; enemySpeedBase=2; enemyCountBase=1; enemyShotEnable=false;
     player.lives=5; player.x=canvas.width/2; bullets=[]; enemies=[]; enemyBullets=[]; explosions=[]; enemiesPassed=0; score=0;
+    gameStarted=true;
     bgMusic.currentTime=0; bgMusic.play();
-    update();
+    requestAnimationFrame(update);
 }
-    // دشمن
-let enemySpeedBase=2, enemyCountBase=1;
+
+// دشمن
 function spawnEnemy(){ 
     for(let i=0;i<enemyCountBase;i++){
         let size=80;
@@ -112,8 +102,9 @@ function spawnEnemy(){
 }
 function enemyShoot(enemy){ enemyBullets.push({x:enemy.x+enemy.w/2-5,y:enemy.y+enemy.h,w:10,h:20,speed:6}); playSound(burstPool); }
 
-// آپدیت بازی
+// آپدیت
 function update(){
+    if(!gameStarted) return;
     frame++; if(frame%100===0) spawnEnemy();
     if(startTime){
         let elapsed=(Date.now()-startTime)/1000;
@@ -139,9 +130,9 @@ function update(){
     for(let i=enemies.length-1;i>=0;i--){
         let en=enemies[i]; en.y+=en.speed;
         if(en.y+en.h>player.y+player.h+50){ enemiesPassed++; enemies.splice(i,1);
-            if(enemiesPassed>=3){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
+            if(enemiesPassed>=3){ endGame(); } continue; }
         if(en.x<player.x+player.w && en.x+en.w>player.x && en.y<player.y+player.h && en.y+en.h>player.y){ player.lives--; enemies.splice(i,1);
-            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; } continue; }
+            if(player.lives<=0){ endGame(); } continue; }
         for(let j=bullets.length-1;j>=0;j--){
             let b=bullets[j];
             if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.y+b.h>en.y){ explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0}); enemies.splice(i,1); bullets.splice(j,1); playSound(bombPool); score++; break; }
@@ -153,22 +144,32 @@ function update(){
         let eb=enemyBullets[i]; eb.y+=eb.speed;
         if(eb.y>canvas.height){enemyBullets.splice(i,1); continue;}
         if(eb.x<player.x+player.w && eb.x+eb.w>player.x && eb.y<player.y+player.h && eb.y+eb.h>player.y){ player.lives--; enemyBullets.splice(i,1);
-            if(player.lives<=0){ loadingScreen.style.display='flex'; loadingScreen.querySelector('#loadingText').innerText=بازی مجدد\nامتیاز شما: ${score}; startBtn.style.display='block'; }
+            if(player.lives<=0){ endGame(); }
         }
     }
 
     for(let i=explosions.length-1;i>=0;i++){ explosions[i].frame++; if(explosions[i].frame>20) explosions.splice(i,1); }
 
     draw();
-    if(player.lives>0 && enemiesPassed<3) requestAnimationFrame(update);
+    if(gameStarted) requestAnimationFrame(update);
+}
+
+function endGame(){
+    gameStarted=false;
+    loadingScreen.style.display='flex';
+    loadingScreen.querySelector('#loadingText')?.remove();
+    const textDiv = document.createElement('div');
+    textDiv.id='loadingText';
+    textDiv.innerText=بازی مجدد\nامتیاز شما: ${score};
+    loadingScreen.insertBefore(textDiv,startBtn);
 }
 
 // رسم
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(bgImg,0,0,canvas.width,canvas.height);
-    ctx.strokeStyle="yellow"; ctx.setLineDash([5,5]); ctx.strokeRect(0,player.y+player.h+50,canvas.width,20); ctx.setLineDash([]);
-    ctx.save(); ctx.translate(player.x+player.w/2,player.y+player.h/2); ctx.rotate(-Math.PI/2); ctx.drawImage(playerImg,-player.w/2,-player.h/2,player.w,player.h); ctx.restore();bullets.forEach(b=>ctx.drawImage(bulletImg,b.x,b.y,b.w,b.h));
+    ctx.strokeStyle="yellow"; ctx.setLineDash([5,5]); ctx.strokeRect(0,player.y+player.h+50,canvas.width,20); ctx.setLineDash([]);ctx.save(); ctx.translate(player.x+player.w/2,player.y+player.h/2); ctx.rotate(-Math.PI/2); ctx.drawImage(playerImg,-player.w/2,-player.h/2,player.w,player.h); ctx.restore();
+    bullets.forEach(b=>ctx.drawImage(bulletImg,b.x,b.y,b.w,b.h));
     enemyBullets.forEach(eb=>{ctx.fillStyle="red";ctx.fillRect(eb.x,eb.y,eb.w,eb.h);});
     enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
     explosions.forEach(ex=>ctx.drawImage(boomImg,ex.x,ex.y,ex.w,ex.h));

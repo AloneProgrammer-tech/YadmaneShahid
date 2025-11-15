@@ -7,9 +7,14 @@
 <style>
 body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
 canvas { display:block; margin:0 auto; }
-.btn { position:fixed; bottom:20px; width:60px; height:60px; border-radius:50%; background:rgba(255,0,0,0.8); color:white; font-size:30px; text-align:center; line-height:60px; user-select:none; z-index:10; }
+.btn {
+    position:fixed; bottom:20px; width:80px; height:80px; border-radius:50%;
+    background:rgba(255,0,0,0.8); color:white; font-size:36px; text-align:center;
+    line-height:80px; user-select:none; z-index:10; transition: all 0.1s ease;
+}
+.btn:active { background:rgba(255,100,100,0.9); transform: scale(0.95); }
 #btnLeft { left:20px; }
-#btnRight { left:100px; }
+#btnRight { left:120px; }
 #shootBtn { right:20px; bottom:20px; }
 #loadingScreen {
     position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
@@ -95,11 +100,11 @@ const loadingScreen = document.getElementById('loadingScreen');
 const startBtn = document.getElementById('startBtn');
 const loadingText = document.getElementById('loadingText');
 setTimeout(()=>{ startBtn.style.display='block'; },5000);
-
-// پایه‌های دشمن
+    // پایه‌های دشمن
 let enemySpeedBase = 2;
 let enemyCountBase = 1;
-    // شروع بازی
+
+// شروع بازی
 function startGame(){
     startTime = Date.now();
     frame = 0;
@@ -234,7 +239,8 @@ function update(){
         }
         // شلیک دشمن با محدودیت فاصله از مرز و تعداد تیر
         if(enemyShotEnable && en.shotsFired < en.maxShots && Math.random()<0.01){
-            if(en.y + en.h < player.y + player.h + 50){  // فقط بالای خط‌چین شلیک کند
+            let distanceToBorder = (player.y + player.h + 50) - (en.y + en.h);
+            if(distanceToBorder > 80){  // فقط اگر حداقل 80px بالاتر از مرز باشد
                 enemyShoot(en);
                 en.shotsFired++;
             }

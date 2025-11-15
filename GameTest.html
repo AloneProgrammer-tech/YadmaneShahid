@@ -7,9 +7,13 @@
 <style>
 body { margin:0; overflow:hidden; font-family:sans-serif; background:#111; }
 canvas { display:block; margin:0 auto; }
-.btn { position:fixed; bottom:20px; width:60px; height:60px; border-radius:50%; background:rgba(255,0,0,0.8); color:white; font-size:30px; text-align:center; line-height:60px; user-select:none; z-index:10; }
+.btn { 
+    position:fixed; bottom:20px; width:80px; height:80px; border-radius:50%; 
+    background:rgba(255,0,0,0.6); color:white; font-size:36px; text-align:center; 
+    line-height:80px; user-select:none; z-index:10; border:none;
+}
 #btnLeft { left:20px; }
-#btnRight { left:100px; }
+#btnRight { left:120px; }
 #shootBtn { right:20px; bottom:20px; }
 #loadingScreen {
     position:fixed; top:0; left:0; width:100%; height:100%; background:#111; color:white;
@@ -45,26 +49,30 @@ function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.in
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// تصاویر و صداها
+// تصاویر
 let bgImg = new Image(); bgImg.src = 'assets/BackGround.png';
 let playerImg = new Image(); playerImg.src = 'assets/player.png';
 let enemyImg = new Image(); enemyImg.src = 'assets/Enemy.png';
 let bulletImg = new Image(); bulletImg.src = 'assets/Bullet.png';
 let boomImg = new Image(); boomImg.src = 'assets/BOOM.png';
 
-let gunSoundPool = [], burstSoundPool = [], bombSoundPool = [];
-for(let i=0;i<5;i++){
-    let g = new Audio('assets/gun.mp3'); gunSoundPool.push(g);
-    let b = new Audio('assets/burst.mp3'); burstSoundPool.push(b);
-    let bm = new Audio('assets/bomb.mp3'); bombSoundPool.push(bm);
+// Pool صداها
+function createSoundPool(src, count=5){
+    let pool=[];
+    for(let i=0;i<count;i++) pool.push(new Audio(src));
+    return pool;
 }
 
-let bgMusic = new Audio('assets/zamine.mp3'); bgMusic.loop=true; bgMusic.volume=0.5;
+let gunPool = createSoundPool('assets/gun.mp3',5);
+let burstPool = createSoundPool('assets/burst.mp3',5);
+let bombPool = createSoundPool('assets/bomb.mp3',5);
 
-// توابع پخش صدا از Pool
-function playGun(){ for(let s of gunSoundPool){ if(s.paused){ s.currentTime=0; s.play(); return; }}}
-function playBurst(){ for(let s of burstSoundPool){ if(s.paused){ s.currentTime=0; s.play(); return; }}}
-function playBomb(){ for(let s of bombSoundPool){ if(s.paused){ s.currentTime=0; s.play(); return; }}}
+function playSound(pool){
+    for(let s of pool){ if(s.paused){ s.currentTime=0; s.play(); return; }}
+}
+
+let bgMusic = new Audio('assets/zamine.mp3');
+bgMusic.loop=true; bgMusic.volume=0.5;
 
 // بازیکن
 let player = { x:canvas.width/2, y:canvas.height-200, w:100, h:100, speed:6, lives:5 };
@@ -80,7 +88,7 @@ let moveLeft=false, moveRight=false;
 // شلیک بازیکن
 function shoot(){ 
     bullets.push({x:player.x+player.w/2-10,y:player.y-20,w:20,h:20,speed:10}); 
-    playGun(); 
+    playSound(gunPool);
 }
 
 // کنترل دکمه‌ها
@@ -99,7 +107,7 @@ setTimeout(()=>{ startBtn.style.display='block'; },5000);
 // پایه‌های دشمن
 let enemySpeedBase = 2;
 let enemyCountBase = 1;
-// شروع بازی
+    // شروع بازی
 function startGame(){
     startTime = Date.now();
     frame = 0;
@@ -143,7 +151,7 @@ function spawnEnemy(){
 // شلیک دشمن
 function enemyShoot(enemy){
     enemyBullets.push({x:enemy.x+enemy.w/2-5, y:enemy.y+enemy.h, w:10, h:20, speed:6});
-    playBurst();
+    playSound(burstPool);
 }
 
 // آپدیت بازی
@@ -182,7 +190,7 @@ function update(){
                b.y < eb.y + eb.h && b.y + b.h > eb.y){
                 bullets.splice(bi,1);
                 enemyBullets.splice(ei,1);
-                playBomb();
+                playSound(bombPool);
                 return;
             }
         }
@@ -201,7 +209,7 @@ function update(){
             enemies.splice(i,1);
             if(enemiesPassed >= 3){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText=بازی مجدد\nامتیاز شما: ${score};
                 startBtn.style.display='block';
             }
             continue;
@@ -214,7 +222,7 @@ function update(){
             enemies.splice(i,1);
             if(player.lives <= 0){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText=بازی مجدد\nامتیاز شما: ${score};
                 startBtn.style.display='block';
             }
             continue;
@@ -227,13 +235,13 @@ function update(){
                 explosions.push({x:en.x,y:en.y,w:en.w,h:en.h,frame:0});
                 enemies.splice(i,1);
                 bullets.splice(j,1);
-                playBomb();
+                playSound(bombPool);
                 score++;
                 break;
             }
         }
-        // شلیک دشمن با محدودیت
-        if(enemyShotEnable && en.shotsFired < en.maxShots && Math.random()<0.01){ 
+        // شلیک دشمن با محدودیت و فاصله از خط مرز
+        if(enemyShotEnable && en.shotsFired < en.maxShots && Math.random()<0.01 && en.y < player.y + player.h - 100){ 
             enemyShoot(en); 
             en.shotsFired++;
         }
@@ -250,7 +258,7 @@ function update(){
             enemyBullets.splice(i,1);
             if(player.lives <=0){
                 loadingScreen.style.display='flex';
-                loadingText.innerText='بازی مجدد';
+                loadingText.innerText=بازی مجدد\nامتیاز شما: ${score};
                 startBtn.style.display='block';
             }
         }
@@ -296,6 +304,7 @@ function draw(){
         ctx.fillRect(10+i*25,50,20,20);
     }
 }
+
 </script>
 
 </body>

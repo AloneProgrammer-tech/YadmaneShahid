@@ -165,27 +165,15 @@
     </div>
 
     <div class="buttons">
-      <!-- دکمه دانلود -->
-      <button id="download-btn">
-        📥 دانلود
-      </button>
-
-      <!-- دکمه بزرگنمایی -->
-      <button id="zoom-btn">
-        🔍 بزرگ‌نمایی
-      </button>
-      <!-- دکمه اشتراک‌گذاری -->
-      <button id="share-btn">
-        📤 اشتراک‌گذاری
-      </button>
+      <button id="download-btn">📥 دانلود</button>
+      <button id="zoom-btn">🔍 بزرگ‌نمایی</button>
+      <button id="share-btn">📤 اشتراک‌گذاری</button>
     </div>
 
     <div class="footer">طراحی شده با احترام و یاد شهدا 🌹</div>
-  </div>
-
-  <!-- موزیک -->
-  <audio id="bg-music" loop autoplay>
-    <source src="https://s34.picofile.com/d/8488276368/a2a05609-9f57-4d9c-bebd-5f7d7bfad436/Habib_Khazaeifar_Istadeh_Dar_Ghobar.mp3" type="audio/flac">
+  </div><!-- موزیک (بدون autoplay) -->
+  <audio id="bg-music" loop>
+    <source src="https://s34.picofile.com/d/8488276368/a2a05609-9f57-4d9c-bebd-5f7d7bfad436/Habib_Khazaeifar_Istadeh_Dar_Ghobar.mp3" type="audio/mp3">
   </audio>
 
   <script>
@@ -213,8 +201,8 @@
       isMuted = !isMuted;
       bgMusic.muted = isMuted;
       icon.innerHTML = isMuted
-        ? '<path d=\"M16.5 12l4.5 4.5-1.5 1.5L15 13.5 10.5 18H6v-6h4.5l4.5-4.5 4.5 4.5-1.5 1.5L16.5 12z\"/>'
-        : '<path d=\"M11 5L6 9H2v6h4l5 4V5z\"/>';
+        ? '<path d="M16.5 12l4.5 4.5-1.5 1.5L15 13.5 10.5 18H6v-6h4.5l4.5-4.5 4.5 4.5-1.5 1.5L16.5 12z"/>'
+        : '<path d="M11 5L6 9H2v6h4l5 4V5z"/>';
     });
 
     downloadBtn.addEventListener("click", () => {
@@ -236,7 +224,7 @@
       if (navigator.share) {
         await navigator.share({
           title: 'وصیت شهید',
-          text: 'از این لینک میتوانید وصیت شهید بزرگوار سید جاسم نوری را مشاهده کنید 🌹',
+          text: 'وصیت‌نامه شهید بزرگوار سید جاسم نوری 🌹',
           url: img.src
         });
       } else {
@@ -244,5 +232,6 @@
       }
     });
   </script>
+
 </body>
 </html>
